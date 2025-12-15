@@ -19,18 +19,13 @@ android {
 
     buildTypes {
         debug {
-            // debug build без оптимизаций
             isMinifyEnabled = false
         }
 
         release {
-            // ⚠️ ВАЖНО: shrinkResources выключен,
-            // иначе Gradle упадёт при minify=false
             isMinifyEnabled = false
             isShrinkResources = false
-
-            // Для Codemagic signing берётся извне,
-            // поэтому здесь ничего указывать не нужно
+            // Signing для release берётся из Codemagic
         }
     }
 
@@ -40,4 +35,10 @@ android {
     }
 
     kotlinOptions {
-        jv
+        jvmTarget = "17"
+    }
+}
+
+flutter {
+    source = "../.."
+}
