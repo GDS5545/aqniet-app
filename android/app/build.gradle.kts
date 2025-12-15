@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "kz.zdravunion.aqniet"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "kz.zdravunion.aqniet"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
