@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // Flutter Gradle plugin must be applied last
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -18,14 +18,26 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            // debug build без оптимизаций
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+        }
+
+        release {
+            // ⚠️ ВАЖНО: shrinkResources выключен,
+            // иначе Gradle упадёт при minify=false
+            isMinifyEnabled = false
+            isShrinkResources = false
+
+            // Для Codemagic signing берётся извне,
+            // поэтому здесь ничего указывать не нужно
         }
     }
-}
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 
-flutter {
-    source = "../.."
-}
+    kotlinOptions {
+        jv
