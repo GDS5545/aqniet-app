@@ -1,0 +1,30 @@
+workflows:
+  android-workflow:
+    name: AQNIET Android Build
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+      android_signing:
+        - aqniet_keystore
+
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Build AAB (release)
+        script: flutter build appbundle --release
+
+      - name: Build APK (release)
+        script: flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/**/**/*.aab
+      - build/app/outputs/**/**/*.apk
+
+android_signing:
+  aqniet_keystore:
+    keystore_path: aqniet-upload.jks
+    keystore_password: $KEYSTORE_PASSWORD
+    key_alias: aqniet
+    key_password: $KEY_PASSWORD
