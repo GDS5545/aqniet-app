@@ -11,11 +11,14 @@ class LockService {
 
   Future<bool> isEnabled() async => (await _storage.read(key: _kEnabled)) == '1';
 
+  Future<void> enable(bool value) async {
+    await _storage.write(key: _kEnabled, value: value ? '1' : '0');
+  }
+
+  Future<bool> hasPin() async => (await _storage.read(key: _kPinHash)) != null;
+
   Future<int> pinLength() async =>
       int.tryParse(await _storage.read(key: _kPinLen) ?? '') ?? 4;
-
-  Future<void> enable(bool value) async =>
-      _storage.write(key: _kEnabled, value: value ? '1' : '0');
 
   Future<void> setPin(String pin) async {
     final hash = sha256.convert(utf8.encode(pin)).toString();
@@ -30,8 +33,6 @@ class LockService {
     final hash = sha256.convert(utf8.encode(pin)).toString();
     return hash == saved;
   }
-
-  Future<bool> hasPin() async => (await _storage.read(key: _kPinHash)) != null;
 
   Future<void> clearPin() async {
     await _storage.delete(key: _kPinHash);
