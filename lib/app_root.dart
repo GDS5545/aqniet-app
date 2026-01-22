@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
 import 'security/lock_service.dart';
 import 'security/lock_screen.dart';
 import 'security/set_pin_screen.dart';
@@ -20,16 +21,34 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
   Timer? _idleTimer;
 
-  // ✅ Выбери таймаут:
+  // ✅ Таймаут блокировки (выбери одно):
   final Duration idleTimeout = const Duration(seconds: 30);
   // final Duration idleTimeout = const Duration(minutes: 2);
+
+  late final WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _startGuard();
-    _resetIdleTimer();
+
+    // WebView controller
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (request) => NavigationDecision.navigate,
+        ),
+      )
+      ..loadRequest(Uri.parse('https://ТВОЙ_ДОМЕН/account/')); // <-- ЗАМЕНИ
+
+    // ✅ КРИТИЧНЫЙ ФИКС:
+    // Любые Navigator.push() нельзя надежно делать прямо в initState.
+    // Делаем после первого кадра.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startGuard();
+      _resetIdleTimer();
+    });
   }
 
   void _resetIdleTimer() {
@@ -41,7 +60,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
   }
 
   Future<void> _startGuard() async {
-    // 1) Если PIN ещё не установлен — предлагаем установить
+    // 1) Если PIN ещё не установлен — предложить установить
     final hasPin = await lock.hasPin();
     if (!hasPin) {
       final created = await Navigator.of(context).push<bool>(
@@ -49,9 +68,10 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
           ) ??
           false;
 
-      // Если человек отменил — не включаем блокировку
+      // Если отменили — просто пускаем без блокировки
       if (!created) {
         await lock.enable(false);
+        if (!mounted) return;
         setState(() {
           _unlocked = true;
           _needRelock = false;
@@ -60,9 +80,10 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       }
     }
 
-    // 2) Если блокировка включена — просим PIN
+    // 2) Если блокировка включена — запросить PIN
     final enabled = await lock.isEnabled();
     if (!enabled) {
+      if (!mounted) return;
       setState(() {
         _unlocked = true;
         _needRelock = false;
@@ -101,7 +122,7 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
       _idleTimer?.cancel();
     }
 
-    // ✅ При возврате — попросить PIN
+    // ✅ При возврате — запросить PIN
     if (state == AppLifecycleState.resumed) {
       _guard();
       _resetIdleTimer();
@@ -121,7 +142,8 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
     return Listener(
       onPointerDown: (_) => _resetIdleTimer(),
       child: MaterialApp(
-        home: _unlocked ? const WebHome() : const LockCurtain(),
+        debugShowCheckedModeBanner: false,
+        home: _unlocked ? WebHome(controller: _controller) : const LockCurtain(),
       ),
     );
   }
@@ -129,30 +151,17 @@ class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
 
 class LockCurtain extends StatelessWidget {
   const LockCurtain({super.key});
+
   @override
   Widget build(BuildContext context) {
-    // “шторка”, чтобы контент не светился
+    // “шторка”, чтобы сайт не светился в превью и до ввода PIN
     return const Scaffold(body: SizedBox.expand());
   }
 }
 
-class WebHome extends StatefulWidget {
-  const WebHome({super.key});
-
-  @override
-  State<WebHome> createState() => _WebHomeState();
-}
-
-class _WebHomeState extends State<WebHome> {
-  late final WebViewController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse("https://uchet.zdravunion.kz/account/"));
-  }
+class WebHome extends StatelessWidget {
+  final WebViewController controller;
+  const WebHome({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
