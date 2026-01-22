@@ -151,7 +151,7 @@ class _WebHomeState extends State<WebHome> {
     super.initState();
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse("https://ТВОЙ_ДОМЕН/account/"));
+      ..loadRequest(Uri.parse("https://uchet.zdravunion.kz/account/"));
   }
 
   @override
