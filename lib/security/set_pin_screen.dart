@@ -49,13 +49,11 @@ class _SetPinScreenState extends State<SetPinScreen> {
                     });
 
                     if (firstPin == null) {
-                      // первый ввод
                       firstPin = pin;
                       setState(() => busy = false);
                       return;
                     }
 
-                    // второй ввод
                     if (pin != firstPin) {
                       firstPin = null;
                       setState(() {
