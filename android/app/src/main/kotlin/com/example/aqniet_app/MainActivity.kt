@@ -1,5 +1,6 @@
-package com.example.aqniet_app
+package kz.zdravunion.aqniet
 
 import io.flutter.embedding.android.FlutterActivity
 
-class MainActivity : FlutterActivity()
+class MainActivity: FlutterActivity() {
+}
