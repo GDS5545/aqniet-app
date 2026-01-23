@@ -10,20 +10,17 @@ workflows:
         - aqniet_keystore
 
     scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
+  - name: Flutter clean
+    script: flutter clean
 
-      - name: Generate launcher icons
-        script: dart run flutter_launcher_icons
+  - name: Get Flutter packages
+    script: flutter pub get
 
-      - name: Analyze
-        script: flutter analyze
+  - name: Generate launcher icons
+    script: dart run flutter_launcher_icons
 
-      - name: Build AAB (release)
-        script: flutter build appbundle --release
-
-      - name: Build APK (release)
-        script: flutter build apk --release
+  - name: Analyze
+    script: flutter analyze
 
     artifacts:
       - build/app/outputs/bundle/release/*.aab
